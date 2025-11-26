@@ -1,5 +1,5 @@
 {
-  "name": "HairVision by M.Hosny",
+  "name": "HairVision01 by M.Hosny",
   "description": "AI-powered hair loss assessment and restoration visualization.",
   "requestFramePermissions": [
     "camera"
