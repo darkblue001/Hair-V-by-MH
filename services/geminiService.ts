@@ -13,10 +13,18 @@ const getMimeType = (base64: string) => {
   return match ? match[1] : 'image/jpeg';
 };
 
-export const analyzeScalpImage = async (base64Image: string, lang: Language): Promise<AnalysisResult> => {
-  if (!apiKey) throw new Error("API Key is missing");
+// Helper to detect Quota errors
+const isQuotaError = (error: any): boolean => {
+  const msg = error.message || JSON.stringify(error);
+  return msg.includes('429') || msg.includes('Quota') || msg.includes('RESOURCE_EXHAUSTED');
+};
 
-  const ai = new GoogleGenAI({ apiKey });
+export const analyzeScalpImage = async (base64Image: string, lang: Language): Promise<AnalysisResult> => {
+  // Allow VITE_API_KEY fallback for dev environments
+  const key = apiKey || (import.meta as any).env?.VITE_API_KEY;
+  if (!key) throw new Error("API Key is missing");
+
+  const ai = new GoogleGenAI({ apiKey: key });
   
   // Clean base64 string
   const data = stripBase64Prefix(base64Image);
@@ -25,9 +33,9 @@ export const analyzeScalpImage = async (base64Image: string, lang: Language): Pr
   const prompt = `
     Analyze this scalp image for hair transplant assessment.
     1. Estimate the Norwood Scale (1-7).
-    2. Estimate the TOTAL number of grafts needed for a good cosmetic result.
+    2. Estimate the TOTAL number of grafts needed.
     3. Break down the grafts by zone: Frontal Hairline, Mid-Scalp, and Crown.
-    4. Estimate a cost range in USD based on average hair transplant prices in Egypt (typically approx $0.80 to $1.50 USD per graft).
+    4. Estimate a cost range in USD based on average hair transplant prices in Egypt (approx $0.80 to $1.50 USD per graft).
     5. Provide a short 2-sentence summary of the condition in ${lang === 'ar' ? 'Arabic' : 'English'}.
   `;
 
@@ -70,8 +78,11 @@ export const analyzeScalpImage = async (base64Image: string, lang: Language): Pr
     } else {
       throw new Error("No data returned from analysis.");
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini Analysis Error:", error);
+    if (isQuotaError(error)) {
+        throw new Error("QUOTA_EXCEEDED");
+    }
     throw error;
   }
 };
@@ -80,36 +91,23 @@ export const generateRestorationPreview = async (
   originalBase64: string,
   stylePrompt: string
 ): Promise<string> => {
-  if (!apiKey) throw new Error("API Key is missing");
+  const key = apiKey || (import.meta as any).env?.VITE_API_KEY;
+  if (!key) throw new Error("API Key is missing");
 
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = new GoogleGenAI({ apiKey: key });
   const data = stripBase64Prefix(originalBase64);
   const mimeType = getMimeType(originalBase64);
 
-  // Softened prompt to avoid medical safety triggers (Visual Effects persona vs Medical)
+  // Simplified prompt to be more token-efficient while maintaining quality
   const prompt = `
-    You are a high-end visual effects artist specializing in photorealistic digital grooming and hair simulation.
-    
-    TASK: Edit the provided image to digitally visualize a full head of hair with maximum density.
-    
-    VISUAL REQUIREMENTS:
-    1. **FILL BALD AREAS**: 
-       - Completely cover any visible scalp skin on the top, front, and crown.
-       - Apply a "Maximum Density" visual effect (opaque hair coverage).
-    
-    2. **NATURALISM**:
-       - Match the lighting, shadows, and color tone of the original image.
-       - Ensure the hair texture matches the existing side/back hair.
-       - Create a soft, natural-looking hairline appropriate for a youthful appearance.
-
-    3. **STYLE**: 
-       - "${stylePrompt}"
-       - Ensure the result looks photorealistic, not like a cartoon or drawing.
-
-    4. **INTEGRATION**:
-       - Do not change the face or background. Only add hair to the scalp.
-
-    OUTPUT: A modified version of the original image.
+    Role: Professional VFX Artist.
+    Task: Edit image to add full, dense hair to all bald areas.
+    Style: ${stylePrompt}.
+    Rules:
+    - Eliminate all visible scalp skin.
+    - Match lighting/texture of original.
+    - Keep face unchanged.
+    - Output: Photorealistic result.
   `;
 
   try {
@@ -124,10 +122,9 @@ export const generateRestorationPreview = async (
       },
     });
 
-    // Check for safety finish reason
     const candidate = response.candidates?.[0];
     if (candidate?.finishReason && candidate.finishReason !== 'STOP') {
-      throw new Error(`Generation stopped due to: ${candidate.finishReason}. Try a different photo.`);
+      throw new Error(`Generation stopped: ${candidate.finishReason}`);
     }
 
     const parts = candidate?.content?.parts;
@@ -141,8 +138,11 @@ export const generateRestorationPreview = async (
     
     throw new Error("Model returned no image data.");
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini Generation Error:", error);
+    if (isQuotaError(error)) {
+        throw new Error("QUOTA_EXCEEDED");
+    }
     throw error;
   }
 };

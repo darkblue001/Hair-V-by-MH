@@ -53,6 +53,9 @@ export const translations = {
     zone_mid: "Mid-Scalp",
     zone_crown: "Crown",
     graftsUnit: "Grafts",
+    // Errors
+    quotaErrorTitle: "Server Busy",
+    quotaErrorMsg: "We are experiencing high traffic (API Limit Reached). Please wait 1 minute and try again.",
   },
   ar: {
     appTitle: "HairVision by M.Hosny",
@@ -106,6 +109,9 @@ export const translations = {
     zone_mid: "وسط الرأس",
     zone_crown: "منطقة التاج",
     graftsUnit: "بصيلة",
+    // Errors
+    quotaErrorTitle: "الخادم مشغول",
+    quotaErrorMsg: "نواجه ضغطاً عالياً حالياً (تجاوز حد الاستخدام). يرجى الانتظار دقيقة والمحاولة مرة أخرى.",
   }
 };
 
