@@ -215,13 +215,15 @@ const App: React.FC = () => {
 
         {/* PREVIEW READY STATE */}
         {appState === AppState.PREVIEW_READY && image && simulationImage && (
-          <SimulationPreview
-            originalImage={image}
-            generatedImage={simulationImage}
-            onRegenerate={handleGeneratePreview}
-            isRegenerating={false}
-            lang={language}
-          />
+          <>
+            <SimulationPreview
+              originalImage={image}
+              generatedImage={simulationImage}
+              onRegenerate={handleGeneratePreview}
+              isRegenerating={false}
+              lang={language}
+            />
+          </>
         )}
 
         {/* ERROR STATE */}

@@ -86,20 +86,20 @@ export const generateRestorationPreview = async (
   const data = stripBase64Prefix(originalBase64);
   const mimeType = getMimeType(originalBase64);
 
-  const fullPrompt = `
-    Act as a professional hair restoration specialist and digital artist. 
-    Edit this image to simulate a realistic hair transplant result.
+  // We use gemini-2.5-flash-image for fast image editing/generation capabilities.
+  const prompt = `
+    Act as a professional hair restoration specialist and digital artist.
+    Task: Edit the input image to simulate a complete, high-density hair transplant result.
     
-    Target Style: ${stylePrompt}.
+    CRITICAL INSTRUCTIONS:
+    1. Identify ALL exposed scalp skin on the top of the head, including the receding hairline, temples, mid-scalp, and crown vertex.
+    2. FILL these bald areas COMPLETELY with thick, dense hair. No scalp skin should be visible in the treated zones.
+    3. Construct a new, natural hairline that frames the face lower down on the forehead, connecting the temples properly.
+    4. Ensure the new hair seamlessly blends with the existing hair on the sides and back in terms of color, texture, flow, and lighting.
+    5. Style Directive: ${stylePrompt}.
+    6. Maintain the original face identity, lighting conditions, and background. Do not alter facial features.
     
-    Strict Execution Guidelines for Hyper-Realism:
-    1. Lighting Integration: Analyze the original light source (direction, hardness, temperature). Ensure the new hair catches this light accurately (specular highlights) and casts realistic micro-shadows onto the scalp.
-    2. Natural Hairline Design: Create a hairline that is age-appropriate. It must NOT be a perfectly straight line. Add micro-irregularities and single-hair grafts at the front for a soft, natural transition from the forehead skin.
-    3. Texture & Flow: Match the caliber, curl pattern, and growth direction of the subject's existing hair (sides/back). The hair should flow naturally according to gravity and head shape.
-    4. Scalp Visibility: For a natural look, ensure slight scalp visibility is maintained where appropriate (especially at the hairline partings) so it doesn't look like a solid wig or helmet.
-    5. Identity Preservation: Maintain the exact facial features, skin texture, expression, background, and clothing. Only the balding/thinning areas should be populated with new hair.
-    
-    Output: A high-resolution, photorealistic image indistinguishable from a real photograph.
+    The output must look like a photorealistic "After" photo of a successful hair restoration surgery.
   `;
 
   try {
@@ -107,14 +107,11 @@ export const generateRestorationPreview = async (
       model: 'gemini-2.5-flash-image',
       contents: {
         parts: [
+          { text: prompt },
           { inlineData: { mimeType, data } },
-          { text: fullPrompt }
         ]
       },
-      config: {
-        // gemini-2.5-flash-image does not strictly support responseMimeType for images in the same way as text,
-        // but we rely on it returning an image part.
-      }
+      // No config needed for basic image editing with flash-image
     });
 
     // Check for inlineData (image) in parts
