@@ -47,7 +47,12 @@ export const translations = {
     // Chart
     minEst: "Min Estimate",
     maxEst: "Max Estimate",
-    newAnalysis: "New Analysis"
+    newAnalysis: "New Analysis",
+    // Zones
+    zone_frontal: "Frontal Hairline",
+    zone_mid: "Mid-Scalp",
+    zone_crown: "Crown",
+    graftsUnit: "Grafts",
   },
   ar: {
     appTitle: "HairVision by M.Hosny",
@@ -95,7 +100,12 @@ export const translations = {
     // Chart
     minEst: "الحد الأدنى",
     maxEst: "الحد الأقصى",
-    newAnalysis: "تحليل جديد"
+    newAnalysis: "تحليل جديد",
+    // Zones
+    zone_frontal: "خط الشعر الأمامي",
+    zone_mid: "وسط الرأس",
+    zone_crown: "منطقة التاج",
+    graftsUnit: "بصيلة",
   }
 };
 

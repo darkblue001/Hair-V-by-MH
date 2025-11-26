@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     define: {
-      // Safely replace process.env.API_KEY with the actual value
+      // Safely replace process.env.API_KEY with the actual value during build
       'process.env.API_KEY': JSON.stringify(apiKey),
     },
     build: {

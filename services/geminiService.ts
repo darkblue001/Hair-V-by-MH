@@ -88,18 +88,36 @@ export const generateRestorationPreview = async (
 
   // We use gemini-2.5-flash-image for fast image editing/generation capabilities.
   const prompt = `
-    Act as a professional hair restoration specialist and digital artist.
-    Task: Edit the input image to simulate a complete, high-density hair transplant result.
+    You are an expert hair transplant surgeon and high-end visual effects artist specializing in photorealistic hair rendering.
     
-    CRITICAL INSTRUCTIONS:
-    1. Identify ALL exposed scalp skin on the top of the head, including the receding hairline, temples, mid-scalp, and crown vertex.
-    2. FILL these bald areas COMPLETELY with thick, dense hair. No scalp skin should be visible in the treated zones.
-    3. Construct a new, natural hairline that frames the face lower down on the forehead, connecting the temples properly.
-    4. Ensure the new hair seamlessly blends with the existing hair on the sides and back in terms of color, texture, flow, and lighting.
-    5. Style Directive: ${stylePrompt}.
-    6. Maintain the original face identity, lighting conditions, and background. Do not alter facial features.
-    
-    The output must look like a photorealistic "After" photo of a successful hair restoration surgery.
+    TASK: Transform the provided image of a balding/thinning scalp into a result showing a COMPLETED, HEALED, MAXIMUM-DENSITY hair transplant.
+
+    STRICT EXECUTION GUIDELINES:
+    1. **MAXIMUM DENSITY (ZERO VISIBLE SCALP)**:
+       - Identify ALL bald or thinning areas (frontal, mid-scalp, crown/vertex).
+       - Fill these areas with THICK, DENSE hair.
+       - The target density is "youthful fullness" (approx. 90-110 follicular units/cm²).
+       - There must be ABSOLUTELY NO VISIBLE SKIN in the treated areas. The hair coverage must be opaque and solid.
+       - Eliminate all "diffuse thinning". The scalp should be completely hidden by hair.
+
+    2. **YOUTHFUL APPEARANCE**:
+       - Reconstruct the hairline to a lower, youthful position (unless style specifies otherwise).
+       - The crown (vertex) must be fully filled, erasing the "bald spot" completely.
+       - The mid-scalp bridge must be thick and robust.
+
+    3. **REALISM & INTEGRATION**:
+       - **Lighting**: The new hair must catch the light exactly like the existing hair (specular highlights, shadows on the forehead).
+       - **Texture**: Match the caliber (thickness) and curl pattern of the donor hair on the sides/back.
+       - **Flow**: Ensure natural growth direction (e.g., spiral at the crown, forward/sideways at the front).
+
+    4. **STYLE OVERRIDE**: 
+       - Style Request: "${stylePrompt}"
+       - NOTE: Regardless of the requested style, ensure the DENSITY is high. Do not generate a "thinning" look even for conservative styles.
+
+    5. **PRESERVATION**:
+       - Do NOT modify the face, eyes, ears, or background. Only the scalp area.
+
+    OUTPUT: A high-resolution, photorealistic image.
   `;
 
   try {
