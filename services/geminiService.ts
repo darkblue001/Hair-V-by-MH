@@ -1,8 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult, Language } from "../types";
 
-const apiKey = process.env.API_KEY || '';
-
 // Helper to remove data URL prefix
 const stripBase64Prefix = (base64: string) => {
   return base64.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '');
@@ -19,16 +17,44 @@ const isQuotaError = (error: any): boolean => {
   return msg.includes('429') || msg.includes('Quota') || msg.includes('RESOURCE_EXHAUSTED');
 };
 
-export const analyzeScalpImage = async (base64Image: string, lang: Language): Promise<AnalysisResult> => {
-  // Allow VITE_API_KEY fallback for dev environments
-  const key = apiKey || (import.meta as any).env?.VITE_API_KEY;
-  if (!key) throw new Error("API Key is missing");
+// Helper to resize large images to prevent timeouts/latency issues
+const resizeImage = (base64Str: string, maxWidth = 1024): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = base64Str;
+    img.onload = () => {
+      let width = img.width;
+      let height = img.height;
+      
+      // Calculate new dimensions
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, width, height);
+        // Compress to JPEG 0.8 quality
+        resolve(canvas.toDataURL('image/jpeg', 0.8));
+      } else {
+        resolve(base64Str); // Fallback
+      }
+    };
+    img.onerror = () => resolve(base64Str); // Fallback
+  });
+};
 
-  const ai = new GoogleGenAI({ apiKey: key });
+export const analyzeScalpImage = async (base64Image: string, lang: Language): Promise<AnalysisResult> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
-  // Clean base64 string
-  const data = stripBase64Prefix(base64Image);
-  const mimeType = getMimeType(base64Image);
+  // Resize image before sending to improve speed and reduce payload size
+  const resizedImage = await resizeImage(base64Image);
+  const data = stripBase64Prefix(resizedImage);
+  const mimeType = 'image/jpeg'; // resizeImage outputs jpeg
 
   const prompt = `
     Analyze this scalp image for hair transplant assessment.
@@ -83,6 +109,10 @@ export const analyzeScalpImage = async (base64Image: string, lang: Language): Pr
     if (isQuotaError(error)) {
         throw new Error("QUOTA_EXCEEDED");
     }
+    // Check for Safety block
+    if (error.message && error.message.includes('SAFETY')) {
+        throw new Error("SAFETY_BLOCK");
+    }
     throw error;
   }
 };
@@ -91,12 +121,12 @@ export const generateRestorationPreview = async (
   originalBase64: string,
   stylePrompt: string
 ): Promise<string> => {
-  const key = apiKey || (import.meta as any).env?.VITE_API_KEY;
-  if (!key) throw new Error("API Key is missing");
-
-  const ai = new GoogleGenAI({ apiKey: key });
-  const data = stripBase64Prefix(originalBase64);
-  const mimeType = getMimeType(originalBase64);
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
+  // Resize large images to prevent timeouts
+  const resizedImage = await resizeImage(originalBase64);
+  const data = stripBase64Prefix(resizedImage);
+  const mimeType = 'image/jpeg';
 
   // Simplified prompt to be more token-efficient while maintaining quality
   const prompt = `
@@ -123,6 +153,11 @@ export const generateRestorationPreview = async (
     });
 
     const candidate = response.candidates?.[0];
+    
+    // Explicitly check for safety finish reason
+    if (candidate?.finishReason === 'SAFETY') {
+        throw new Error("SAFETY_BLOCK");
+    }
     if (candidate?.finishReason && candidate.finishReason !== 'STOP') {
       throw new Error(`Generation stopped: ${candidate.finishReason}`);
     }
@@ -142,6 +177,9 @@ export const generateRestorationPreview = async (
     console.error("Gemini Generation Error:", error);
     if (isQuotaError(error)) {
         throw new Error("QUOTA_EXCEEDED");
+    }
+    if (error.message && error.message.includes('SAFETY')) {
+        throw new Error("SAFETY_BLOCK");
     }
     throw error;
   }

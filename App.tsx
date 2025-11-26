@@ -66,6 +66,11 @@ const App: React.FC = () => {
         title = t.quotaErrorTitle;
         message = t.quotaErrorMsg;
       }
+      // Handle Safety Blocks
+      else if (error.message === 'SAFETY_BLOCK') {
+        title = t.safetyErrorTitle;
+        message = t.safetyErrorMsg;
+      }
       // Handle Missing API Key
       else if (error.message && (error.message.includes('API Key') || error.message.includes('403'))) {
         message = language === 'ar' 
@@ -105,6 +110,8 @@ const App: React.FC = () => {
 
       if (error.message === 'QUOTA_EXCEEDED') {
          errorMessage = t.quotaErrorMsg;
+      } else if (error.message === 'SAFETY_BLOCK') {
+         errorMessage = t.safetyErrorMsg;
       }
 
       alert(errorMessage);
@@ -246,26 +253,26 @@ const App: React.FC = () => {
          {appState === AppState.ERROR && (
            <div className="max-w-md mx-auto mt-20 p-8 bg-red-50 rounded-2xl border border-red-100 text-center">
              <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-               <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+               <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+               </svg>
              </div>
-             <h3 className="text-xl font-bold text-slate-900 mb-2">{errorTitle || t.errorTitle}</h3>
-             <p className="text-slate-600 mb-6">{errorMsg || "An unexpected error occurred."}</p>
+             <h3 className="text-xl font-bold text-red-800 mb-2">{errorTitle || t.errorTitle}</h3>
+             <p className="text-red-600 mb-6">{errorMsg}</p>
              <button 
                onClick={handleReset}
-               className="px-6 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl font-semibold hover:bg-slate-50 transition-colors"
+               className="px-6 py-2 bg-red-100 text-red-700 font-semibold rounded-lg hover:bg-red-200 transition-colors"
              >
                {t.tryAgain}
              </button>
            </div>
          )}
-
        </main>
 
-       {/* Footer */}
-       <footer className="bg-white border-t border-slate-100 py-12 mt-auto">
+       <footer className="bg-white border-t border-slate-100 py-8 mt-auto">
           <div className="max-w-7xl mx-auto px-4 text-center text-slate-400 text-sm">
-            <p>{t.footerDisclaimer}</p>
-            <p className="mt-2">&copy; {new Date().getFullYear()} {t.appTitle}. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} HairVision AI. All rights reserved.</p>
+            <p className="mt-2 text-xs">{t.footerDisclaimer}</p>
           </div>
        </footer>
     </div>

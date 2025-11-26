@@ -56,6 +56,8 @@ export const translations = {
     // Errors
     quotaErrorTitle: "Server Busy",
     quotaErrorMsg: "We are experiencing high traffic (API Limit Reached). Please wait 1 minute and try again.",
+    safetyErrorTitle: "Image Not Accepted",
+    safetyErrorMsg: "The AI safety filters blocked this image. Please try a clearer photo or a different angle (avoid full face close-ups if possible).",
   },
   ar: {
     appTitle: "HairVision by M.Hosny",
@@ -112,6 +114,8 @@ export const translations = {
     // Errors
     quotaErrorTitle: "الخادم مشغول",
     quotaErrorMsg: "نواجه ضغطاً عالياً حالياً (تجاوز حد الاستخدام). يرجى الانتظار دقيقة والمحاولة مرة أخرى.",
+    safetyErrorTitle: "الصورة غير مقبولة",
+    safetyErrorMsg: "عذراً، فلاتر الأمان في الذكاء الاصطناعي رفضت هذه الصورة. يرجى محاولة صورة أوضح أو زاوية مختلفة.",
   }
 };
 
