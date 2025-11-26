@@ -80,7 +80,7 @@ const App: React.FC = () => {
       const result = await generateRestorationPreview(image, stylePrompt);
       setSimulationImage(result);
       setAppState(AppState.PREVIEW_READY);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       if (!isRegenerating) {
         setAppState(AppState.RESULTS);
@@ -88,7 +88,12 @@ const App: React.FC = () => {
         // If regeneration failed, go back to ready state so user can try again
         setAppState(AppState.PREVIEW_READY);
       }
-      alert(language === 'ar' ? "فشل توليد المحاكاة." : "Simulation generation failed.");
+      
+      const errorMessage = language === 'ar' 
+        ? `فشل توليد المحاكاة: ${error.message || 'خطأ غير معروف'}`
+        : `Simulation generation failed: ${error.message || 'Unknown error'}`;
+
+      alert(errorMessage);
     }
   };
 
