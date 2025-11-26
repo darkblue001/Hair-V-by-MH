@@ -1,0 +1,102 @@
+import { Language } from "./types";
+
+export const translations = {
+  en: {
+    appTitle: "HairVision by M.Hosny",
+    heroTitle: "Predict Your Hair Restoration Journey",
+    heroSubtitle: "Upload a photo to instantly analyze your scalp, estimate graft costs, and simulate your post-transplant look with AI.",
+    uploadBtn: "Upload Photo",
+    selfieBtn: "Take Selfie",
+    step1Title: "Instant Analysis",
+    step1Desc: "Get an immediate Norwood scale classification and hair health check.",
+    step2Title: "Graft Calculator",
+    step2Desc: "Precise AI estimation of graft count needed per zone.",
+    step3Title: "Realistic Results",
+    step3Desc: "See your future self with our generative styling engine.",
+    analyzingTitle: "Analyzing Scalp Topography...",
+    analyzingDesc: "Detecting follicles and measuring density.",
+    simulatingTitle: "Simulating Restoration...",
+    simulatingDesc: "Our AI is reconstructing your hairline and density.",
+    errorTitle: "Analysis Failed",
+    tryAgain: "Try Again",
+    footerDisclaimer: "Medical Disclaimer: This tool provides estimates only. Consult a surgeon for actual medical advice.",
+    // Dashboard
+    reportTitle: "Scalp Analysis Report",
+    norwoodLabel: "Norwood Scale",
+    scaleRange: "Scale 1 (Low) - 7 (High)",
+    graftsLabel: "Total Grafts Needed",
+    graftsEst: "Est. +/- 10%",
+    costLabel: "Estimated Cost",
+    costSub: "Based on avg. clinic rates in Egypt (USD)",
+    zoneDist: "Graft Distribution by Zone",
+    costProj: "Cost Projection",
+    visualizeBtn: "Visualize Your New Look",
+    visualizeSub: "See a hyper-realistic AI simulation of your post-transplant results.",
+    // Preview
+    transformTitle: "Your Transformation",
+    dragSlider: "Drag the slider to compare before and after.",
+    before: "Before",
+    after: "After Simulation",
+    stylesTitle: "Try Different Styles",
+    generating: "Generating new style...",
+    // Styles
+    style_natural: "Natural Density",
+    style_dense: "High Density (Youthful)",
+    style_conservative: "Conservative Receded",
+    style_buzz: "Buzz Cut",
+    // Chart
+    minEst: "Min Estimate",
+    maxEst: "Max Estimate",
+    newAnalysis: "New Analysis"
+  },
+  ar: {
+    appTitle: "HairVision by M.Hosny",
+    heroTitle: "توقع رحلة استعادة شعرك",
+    heroSubtitle: "قم برفع صورة لتحليل فروة رأسك فوراً، وتقدير تكاليف البصيلات، ومحاكاة مظهرك بعد الزراعة باستخدام الذكاء الاصطناعي.",
+    uploadBtn: "رفع صورة",
+    selfieBtn: "التقاط سيلفي",
+    step1Title: "تحليل فوري",
+    step1Desc: "احصل على تصنيف فوري لمقياس نوروود وفحص لصحة الشعر.",
+    step2Title: "حاسبة البصيلات",
+    step2Desc: "تقدير دقيق بالذكاء الاصطناعي لعدد البصيلات المطلوبة لكل منطقة.",
+    step3Title: "نتائج واقعية",
+    step3Desc: "شاهد شكلك المستقبلي مع محرك التصفيف التوليدي الخاص بنا.",
+    analyzingTitle: "جاري تحليل فروة الرأس...",
+    analyzingDesc: "جاري الكشف عن البصيلات وقياس الكثافة.",
+    simulatingTitle: "جاري محاكاة الزراعة...",
+    simulatingDesc: "يقوم الذكاء الاصطناعي بإعادة بناء خط الشعر والكثافة.",
+    errorTitle: "فشل التحليل",
+    tryAgain: "حاول مرة أخرى",
+    footerDisclaimer: "إخلاء مسؤولية طبي: هذه الأداة تقدم تقديرات فقط. استشر جراحاً للحصول على نصيحة طبية فعلية.",
+    // Dashboard
+    reportTitle: "تقرير تحليل فروة الرأس",
+    norwoodLabel: "مقياس نوروود",
+    scaleRange: "مقياس 1 (منخفض) - 7 (عالي)",
+    graftsLabel: "إجمالي البصيلات المطلوبة",
+    graftsEst: "تقدير +/- 10%",
+    costLabel: "التكلفة التقديرية",
+    costSub: "بناءً على متوسط أسعار العيادات في مصر (دولار)",
+    zoneDist: "توزيع البصيلات حسب المنطقة",
+    costProj: "توقعات التكلفة",
+    visualizeBtn: "تخيل مظهرك الجديد",
+    visualizeSub: "شاهد محاكاة واقعية للغاية بالذكاء الاصطناعي لنتائج ما بعد الزراعة.",
+    // Preview
+    transformTitle: "تحولك",
+    dragSlider: "اسحب الشريط للمقارنة بين قبل وبعد.",
+    before: "قبل",
+    after: "بعد المحاكاة",
+    stylesTitle: "جرب أنماط مختلفة",
+    generating: "جاري توليد نمط جديد...",
+    // Styles
+    style_natural: "كثافة طبيعية",
+    style_dense: "كثافة عالية (شبابية)",
+    style_conservative: "خط شعر محافظ",
+    style_buzz: "قصة قصيرة جداً",
+    // Chart
+    minEst: "الحد الأدنى",
+    maxEst: "الحد الأقصى",
+    newAnalysis: "تحليل جديد"
+  }
+};
+
+export const getTranslation = (lang: Language) => translations[lang];
