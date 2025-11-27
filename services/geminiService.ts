@@ -21,7 +21,8 @@ const isQuotaError = (error: any): boolean => {
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Retry mechanism with exponential backoff
-async function withRetry<T>(operation: () => Promise<T>, retries = 3, backoff = 2000): Promise<T> {
+// INCREASED DELAY to 5000ms and REDUCED RETRIES to 2 to respect Google's Free Tier limits better
+async function withRetry<T>(operation: () => Promise<T>, retries = 2, backoff = 5000): Promise<T> {
   try {
     return await operation();
   } catch (error: any) {

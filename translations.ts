@@ -55,7 +55,7 @@ export const translations = {
     graftsUnit: "Grafts",
     // Errors
     quotaErrorTitle: "Server Busy",
-    quotaErrorMsg: "We are experiencing high traffic (API Limit Reached). Please wait 1 minute and try again.",
+    quotaErrorMsg: "Server is busy (API Limit Reached). If this keeps happening, your API Key might be compromised. Please regenerate it in Google AI Studio and restrict it to your website URL.",
     safetyErrorTitle: "Image Not Accepted",
     safetyErrorMsg: "The AI safety filters blocked this image. Please try a clearer photo or a different angle (avoid full face close-ups if possible).",
   },
@@ -113,7 +113,7 @@ export const translations = {
     graftsUnit: "بصيلة",
     // Errors
     quotaErrorTitle: "الخادم مشغول",
-    quotaErrorMsg: "نواجه ضغطاً عالياً حالياً (تجاوز حد الاستخدام). يرجى الانتظار دقيقة والمحاولة مرة أخرى.",
+    quotaErrorMsg: "الخادم مشغول (تجاوز حد الاستخدام). إذا استمرت هذه المشكلة، قد يكون مفتاح API الخاص بك مكشوفاً. يرجى إنشاء مفتاح جديد وتقييده برابط موقعك.",
     safetyErrorTitle: "الصورة غير مقبولة",
     safetyErrorMsg: "عذراً، فلاتر الأمان في الذكاء الاصطناعي رفضت هذه الصورة. يرجى محاولة صورة أوضح أو زاوية مختلفة.",
   }
