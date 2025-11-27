@@ -17,6 +17,23 @@ const isQuotaError = (error: any): boolean => {
   return msg.includes('429') || msg.includes('Quota') || msg.includes('RESOURCE_EXHAUSTED');
 };
 
+// Helper for delay
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Retry mechanism with exponential backoff
+async function withRetry<T>(operation: () => Promise<T>, retries = 3, backoff = 2000): Promise<T> {
+  try {
+    return await operation();
+  } catch (error: any) {
+    if (isQuotaError(error) && retries > 0) {
+      console.warn(`Quota hit. Retrying in ${backoff}ms...`);
+      await delay(backoff);
+      return withRetry(operation, retries - 1, backoff * 2);
+    }
+    throw error;
+  }
+}
+
 // Helper to resize large images to prevent timeouts/latency issues
 const resizeImage = (base64Str: string, maxWidth = 1024): Promise<string> => {
   return new Promise((resolve) => {
@@ -49,9 +66,8 @@ const resizeImage = (base64Str: string, maxWidth = 1024): Promise<string> => {
 };
 
 export const analyzeScalpImage = async (base64Image: string, lang: Language): Promise<AnalysisResult> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
   // Resize image before sending to improve speed and reduce payload size
+  // This is CPU bound, so we don't need to retry this part
   const resizedImage = await resizeImage(base64Image);
   const data = stripBase64Prefix(resizedImage);
   const mimeType = 'image/jpeg'; // resizeImage outputs jpeg
@@ -65,64 +81,63 @@ export const analyzeScalpImage = async (base64Image: string, lang: Language): Pr
     5. Provide a short 2-sentence summary of the condition in ${lang === 'ar' ? 'Arabic' : 'English'}.
   `;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: {
-        parts: [
-          { inlineData: { mimeType, data } },
-          { text: prompt }
-        ]
-      },
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            norwoodScale: { type: Type.INTEGER },
-            totalGrafts: { type: Type.INTEGER },
-            distribution: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  zone: { type: Type.STRING },
-                  count: { type: Type.INTEGER }
+  // Wrap API call in retry logic
+  return withRetry(async () => {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: {
+          parts: [
+            { inlineData: { mimeType, data } },
+            { text: prompt }
+          ]
+        },
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              norwoodScale: { type: Type.INTEGER },
+              totalGrafts: { type: Type.INTEGER },
+              distribution: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    zone: { type: Type.STRING },
+                    count: { type: Type.INTEGER }
+                  }
                 }
-              }
-            },
-            estimatedCostMin: { type: Type.INTEGER },
-            estimatedCostMax: { type: Type.INTEGER },
-            summary: { type: Type.STRING }
+              },
+              estimatedCostMin: { type: Type.INTEGER },
+              estimatedCostMax: { type: Type.INTEGER },
+              summary: { type: Type.STRING }
+            }
           }
         }
-      }
-    });
+      });
 
-    if (response.text) {
-      return JSON.parse(response.text) as AnalysisResult;
-    } else {
-      throw new Error("No data returned from analysis.");
+      if (response.text) {
+        return JSON.parse(response.text) as AnalysisResult;
+      } else {
+        throw new Error("No data returned from analysis.");
+      }
+    } catch (error: any) {
+      console.error("Gemini Analysis Attempt Error:", error);
+      // Explicitly handle Safety blocks which shouldn't be retried
+      if (error.message && error.message.includes('SAFETY')) {
+          throw new Error("SAFETY_BLOCK");
+      }
+      throw error;
     }
-  } catch (error: any) {
-    console.error("Gemini Analysis Error:", error);
-    if (isQuotaError(error)) {
-        throw new Error("QUOTA_EXCEEDED");
-    }
-    // Check for Safety block
-    if (error.message && error.message.includes('SAFETY')) {
-        throw new Error("SAFETY_BLOCK");
-    }
-    throw error;
-  }
+  });
 };
 
 export const generateRestorationPreview = async (
   originalBase64: string,
   stylePrompt: string
 ): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
   // Resize large images to prevent timeouts
   const resizedImage = await resizeImage(originalBase64);
   const data = stripBase64Prefix(resizedImage);
@@ -140,47 +155,48 @@ export const generateRestorationPreview = async (
     - Output: Photorealistic result.
   `;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image',
-      contents: {
-        parts: [
-          // CRITICAL: Image must come BEFORE text for edit tasks in some models/pipelines
-          { inlineData: { mimeType, data } },
-          { text: prompt },
-        ]
-      },
-    });
+  // Wrap API call in retry logic
+  return withRetry(async () => {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: {
+          parts: [
+            // CRITICAL: Image must come BEFORE text for edit tasks in some models/pipelines
+            { inlineData: { mimeType, data } },
+            { text: prompt },
+          ]
+        },
+      });
 
-    const candidate = response.candidates?.[0];
-    
-    // Explicitly check for safety finish reason
-    if (candidate?.finishReason === 'SAFETY') {
-        throw new Error("SAFETY_BLOCK");
-    }
-    if (candidate?.finishReason && candidate.finishReason !== 'STOP') {
-      throw new Error(`Generation stopped: ${candidate.finishReason}`);
-    }
+      const candidate = response.candidates?.[0];
+      
+      // Explicitly check for safety finish reason
+      if (candidate?.finishReason === 'SAFETY') {
+          throw new Error("SAFETY_BLOCK");
+      }
+      if (candidate?.finishReason && candidate.finishReason !== 'STOP') {
+        throw new Error(`Generation stopped: ${candidate.finishReason}`);
+      }
 
-    const parts = candidate?.content?.parts;
-    if (parts) {
-        for (const part of parts) {
-            if (part.inlineData && part.inlineData.data) {
-                return `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
-            }
-        }
-    }
-    
-    throw new Error("Model returned no image data.");
+      const parts = candidate?.content?.parts;
+      if (parts) {
+          for (const part of parts) {
+              if (part.inlineData && part.inlineData.data) {
+                  return `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
+              }
+          }
+      }
+      
+      throw new Error("Model returned no image data.");
 
-  } catch (error: any) {
-    console.error("Gemini Generation Error:", error);
-    if (isQuotaError(error)) {
-        throw new Error("QUOTA_EXCEEDED");
+    } catch (error: any) {
+      console.error("Gemini Generation Attempt Error:", error);
+      if (error.message && error.message.includes('SAFETY')) {
+          throw new Error("SAFETY_BLOCK");
+      }
+      throw error;
     }
-    if (error.message && error.message.includes('SAFETY')) {
-        throw new Error("SAFETY_BLOCK");
-    }
-    throw error;
-  }
+  });
 };
