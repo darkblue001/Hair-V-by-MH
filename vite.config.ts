@@ -7,7 +7,12 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
   
   // Prioritize the API_KEY from the system environment (Vercel) over local .env files
-  const apiKey = process.env.API_KEY || env.API_KEY;
+  // Also support VITE_API_KEY as a fallback standard
+  const apiKey = process.env.API_KEY || env.API_KEY || process.env.VITE_API_KEY || env.VITE_API_KEY || '';
+
+  if (!apiKey && mode === 'production') {
+    console.warn("⚠️ WARNING: API_KEY is missing in the build environment. The app may not work correctly.");
+  }
 
   return {
     plugins: [react()],

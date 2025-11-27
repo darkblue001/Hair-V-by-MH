@@ -84,7 +84,13 @@ export const analyzeScalpImage = async (base64Image: string, lang: Language): Pr
 
   // Wrap API call in retry logic
   return withRetry(async () => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // Ensure we have a valid key. Process.env.API_KEY is replaced by Vite during build.
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      throw new Error("API Key is missing. Please check your Vercel Environment Variables.");
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
     try {
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
@@ -158,7 +164,12 @@ export const generateRestorationPreview = async (
 
   // Wrap API call in retry logic
   return withRetry(async () => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      throw new Error("API Key is missing. Please check your Vercel Environment Variables.");
+    }
+    
+    const ai = new GoogleGenAI({ apiKey });
     try {
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
