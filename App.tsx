@@ -74,8 +74,8 @@ const App: React.FC = () => {
       // Handle Missing API Key
       else if (error.message && (error.message.includes('API Key') || error.message.includes('403'))) {
         message = language === 'ar' 
-          ? "مفتاح API مفقود. يرجى إضافته في إعدادات النشر." 
-          : "API Key is missing or invalid. Please configure it in your deployment settings.";
+          ? "مفتاح API مفقود. يرجى التأكد من تسمية المتغير 'API_KEY' في إعدادات النشر." 
+          : "API Key is missing. Please ensure the variable is named 'API_KEY' in your deployment settings.";
       }
       
       setErrorTitle(title);
